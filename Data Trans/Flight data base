@@ -1,1 +1,229 @@
-- **Analysis data from “Flights” data base**
+**Analysis data from “Flights” data base**
+
+1. Install package
+library(nycflights13)
+library(tidyverse)
+
+2. Questions for analyzing data from “Flights”
+2.1 Which countries of origin have air travel to ATL?
+Code
+f1 <- flights %>%
+  select(origin, dest) %>%
+  filter(dest == "ATL")
+
+View(f1)
+unique(f1)
+
+Result
+origin dest 
+  <chr>  <chr>
+1 LGA    ATL  
+2 JFK    ATL  
+3 EWR    ATL
+
+2.2 Which airline was the most used in March 2013?
+Code
+flights %>%
+  filter(month == 3) %>%
+  count(carrier) %>%
+  arrange(desc(n)) %>%
+  head(5)
+
+Result
+carrier     n
+  <chr>   <int>
+1 UA       4971
+2 B6       4772
+3 EV       4726
+4 DL       4189
+5 AA       2787
+
+2.3 Arrange the months with the highest number of customers using the airline service.
+Code
+flights %>%
+  select(year, month, day) %>%
+  count(month) %>%
+  arrange(desc(n))
+
+Result
+month     n
+   <int> <int>
+ 1     7 29425
+ 2     8 29327
+ 3    10 28889
+ 4     3 28834
+ 5     5 28796
+ 6     4 28330
+ 7     6 28243
+ 8    12 28135
+ 9     9 27574
+10    11 27268
+11     1 27004
+12     2 24951
+
+2.4 In March, which airlines operate departing flights from the country LGA?
+Code
+flights %>%
+  select(carrier, month, origin) %>%
+  filter(origin == "LGA" & month == "3") %>%
+  count(carrier)
+
+Result
+carrier     n
+   <chr>   <int>
+ 1 9E        108
+ 2 AA       1256
+ 3 B6        527
+ 4 DL       2133
+ 5 EV        606
+ 6 F9         57
+ 7 FL        316
+ 8 MQ       1439
+ 9 UA        680
+10 US       1111
+11 WN        466
+12 YV         18
+
+2.5 Find the average air time, the minimum air time, the maximum air time from LGA to ATL, and which carrier has the shortest air time.
+Code
+flights %>%
+  select(carrier, origin, dest, air_time) %>%
+  filter(origin == "LGA" & dest == "ATL") %>% 
+  summarize(mean_time = mean(air_time, na.rm = TRUE), 
+            min_time = min(air_time, na.rm = TRUE),
+            max_time = max(air_time, na.rm = TRUE))
+
+flights %>%
+  select(carrier, origin, dest, air_time) %>%
+  filter(origin == "LGA" & dest == "ATL") %>% 
+  arrange(air_time) %>%
+  head(1)
+
+Result
+mean_time min_time max_time
+      <dbl>    <dbl>    <dbl>
+1      114.       65      175
+carrier origin dest  air_time
+  <chr>   <chr>  <chr>    <dbl>
+1 DL      LGA    ATL         65
+
+2.6 Which airline has the most delayed departures (top 5)?
+Code
+flights %>%
+  select(carrier, dep_delay) %>%
+  arrange(dep_delay) %>%
+  head(5)
+
+Result
+carrier dep_delay
+  <chr>       <dbl>
+1 B6            -43
+2 DL            -33
+3 EV            -32
+4 DL            -30
+5 F9            -27
+
+
+** Create database on Postgresql **
+Create 3-5 table data frame ⇒ write table into sever
+1. Install package
+library(RPostgreSQL)
+library(sqldf)
+
+2. Create connection
+con <- dbConnect(
+  PostgreSQL(),      
+  host = "floppy.db.elephantsql.com",
+  dbname = "snaofpsk",
+  user = "snaofpsk",
+  password = "qJmqyklPIn5OpZNrllMwthbyqP42Nh7m",
+  port = 5432
+)
+
+3. Create tables
+customers <- tribble(
+  ~cutomer_id, ~firstname, ~lastname, ~region, ~company, ~email,
+  1, "Claire", "Pao", "south", "Woodstock Discos", "claire@gmail.com",
+  2, "Pete", "Kim", "central", NULL, "pete@yahoo.com",
+  3, "Ken", "Gin", "central", "Telus", "ken@gmail.com",
+  4, "Gene", "Lhong", "central", NULL, "gene@gmail.com",
+  5, "Erin", "Watson", "south", "Google Inc.", "erin@gmail.com",
+  6, "Kunst", "Thiti", "west", "Apple Inc.", "kunst@hotmail.com"
+)
+
+pizza_menu <- tribble(
+  ~pizza_id, ~menu, ~category, ~price,
+  1, "Hawaiian", "pizza", 140,
+  2, "Pepperoni", "pizza", 140,
+  3, "Vegetarian", "pizza", 120,
+  4, "Margherita", "pizza", 120,
+  5, "Meat Lover", "pizza", 150,
+  6, "Coca-Cola", "drink", 40,
+  7, "Sprite", "drink", 40,
+  8, "Orange Juice", "dessert", 60,
+  9, "Mango Crunch", "dessert", 100,
+  10, "Chocolate Sin", "dessert", 120
+)
+
+orders <- tribble(
+  ~order_id, ~customer_id, ~pizza_id, ~order_date, ~amount,
+  1, 1, 3, 2023-10-10, 2,
+  2, 2, 1, 2023-10-10, 1,
+  3, 3, 4, 2023-10-11, 1,
+  4, 4, 6, 2023-11-12, 3,
+  5, 5, 8, 2023-11-14, 1,
+  6, 6, 5, 2023-12-15, 5
+)
+
+price_level <- tribble(
+  ~price, ~price_level,
+  40, "Low price",
+  60, "Low price",
+  100, "Medium price",
+  120, "Medium price",
+  140, "High price",
+  150, "High price"
+)
+
+4. Send the created table to the server.
+dbWriteTable(con, "customers", customers)
+dbWriteTable(con, "pizza_menu", pizza_menu)
+dbWriteTable(con, "orders", orders)
+dbWriteTable(con, "price_level", price_level)
+
+🐥Get interested data query
+Code
+dbGetQuery(con, "select
+								 menu,
+								 price
+						from pizza_menu
+						order by price desc
+						limit 5")
+
+Result
+menu price
+1    Meat Lover   150
+2     Pepperoni   140
+3      Hawaiian   140
+4 Chocolate Sin   120
+5    Vegetarian   120
+
+🌼Join function
+Code
+pizza_menu %>%
+  select(menu, category, price) %>%
+  filter(category == "pizza")
+  left_join(price_level, by = "price")
+
+Result
+menu       category price
+  <chr>      <chr>    <dbl>
+1 Hawaiian   pizza      140
+2 Pepperoni  pizza      140
+3 Vegetarian pizza      120
+4 Margherita pizza      120
+5 Meat Lover pizza      150
+
+5. Closs connection
+dbDisconnect(con)
+
