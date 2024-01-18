@@ -1,0 +1,122 @@
+1. Install package
+library(nycflights13)
+library(tidyverse)
+
+2. Questions for analyzing data from “Flights”
+2.1 Which countries of origin have air travel to ATL?
+Code
+f1 <- flights %>%
+  select(origin, dest) %>%
+  filter(dest == "ATL")
+
+View(f1)
+unique(f1)
+
+Result
+origin dest 
+  <chr>  <chr>
+1 LGA    ATL  
+2 JFK    ATL  
+3 EWR    ATL
+
+2.2 Which airline was the most used in March 2013?
+Code
+flights %>%
+  filter(month == 3) %>%
+  count(carrier) %>%
+  arrange(desc(n)) %>%
+  head(5)
+
+Result
+carrier     n
+  <chr>   <int>
+1 UA       4971
+2 B6       4772
+3 EV       4726
+4 DL       4189
+5 AA       2787
+
+2.3 Arrange the months with the highest number of customers using the airline service.
+Code
+flights %>%
+  select(year, month, day) %>%
+  count(month) %>%
+  arrange(desc(n))
+
+Result
+month     n
+   <int> <int>
+ 1     7 29425
+ 2     8 29327
+ 3    10 28889
+ 4     3 28834
+ 5     5 28796
+ 6     4 28330
+ 7     6 28243
+ 8    12 28135
+ 9     9 27574
+10    11 27268
+11     1 27004
+12     2 24951
+
+2.4 In March, which airlines operate departing flights from the country LGA?
+Code
+flights %>%
+  select(carrier, month, origin) %>%
+  filter(origin == "LGA" & month == "3") %>%
+  count(carrier)
+
+Result
+carrier     n
+   <chr>   <int>
+ 1 9E        108
+ 2 AA       1256
+ 3 B6        527
+ 4 DL       2133
+ 5 EV        606
+ 6 F9         57
+ 7 FL        316
+ 8 MQ       1439
+ 9 UA        680
+10 US       1111
+11 WN        466
+12 YV         18
+
+2.5 Find the average air time, the minimum air time, the maximum air time from LGA to ATL, and which carrier has the shortest air time.
+Code
+flights %>%
+  select(carrier, origin, dest, air_time) %>%
+  filter(origin == "LGA" & dest == "ATL") %>% 
+  summarize(mean_time = mean(air_time, na.rm = TRUE), 
+            min_time = min(air_time, na.rm = TRUE),
+            max_time = max(air_time, na.rm = TRUE))
+
+flights %>%
+  select(carrier, origin, dest, air_time) %>%
+  filter(origin == "LGA" & dest == "ATL") %>% 
+  arrange(air_time) %>%
+  head(1)
+
+Result
+mean_time min_time max_time
+      <dbl>    <dbl>    <dbl>
+1      114.       65      175
+carrier origin dest  air_time
+  <chr>   <chr>  <chr>    <dbl>
+1 DL      LGA    ATL         65
+
+2.6 Which airline has the most delayed departures (top 5)?
+Code
+flights %>%
+  select(carrier, dep_delay) %>%
+  arrange(dep_delay) %>%
+  head(5)
+
+Result
+carrier dep_delay
+  <chr>       <dbl>
+1 B6            -43
+2 DL            -33
+3 EV            -32
+4 DL            -30
+5 F9            -27
