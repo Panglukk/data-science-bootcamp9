@@ -68,11 +68,11 @@ dbWriteTable(con, "price_level", price_level)
 🐥Get interested data query 
 Code
 dbGetQuery(con, "select
-								 menu,
-								 price
-						from pizza_menu
-						order by price desc
-						limit 5")
+		menu,
+		price
+		from pizza_menu
+		order by price desc
+		limit 5")
 
 Result
 menu price
