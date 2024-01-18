@@ -10,7 +10,7 @@ I am learning data science bootcamp. There are 10 sprint in the program
 - Data Transformation
 - Data Visualization
 
-## second part of the program
+## Second part of the program
 - Building website portfolio
 - Essential Statistics
 - Machine Learning for Data Analyst
